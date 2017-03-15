@@ -577,6 +577,7 @@ chunk_t x509_parse_authorityKeyIdentifier(chunk_t blob, int level0,
 		switch (objectID)
 		{
 			case AUTH_KEY_ID_KEY_ID:
+				chunk_free(&authKeyIdentifier);
 				authKeyIdentifier = chunk_clone(object);
 				break;
 			case AUTH_KEY_ID_CERT_ISSUER:
@@ -1461,6 +1462,7 @@ static bool parse_certificate(private_x509_cert_t *this)
 						}
 						break;
 					case OID_AUTHORITY_KEY_ID:
+						chunk_free(&this->authKeyIdentifier);
 						this->authKeyIdentifier = x509_parse_authorityKeyIdentifier(
 									object, level, &this->authKeySerialNumber);
 						break;
