@@ -220,6 +220,11 @@ $(srcdir)/crypto/proposal/proposal_keywords_static.c:	$(srcdir)/crypto/proposal/
 		$(GPERF) -N proposal_get_token_static -m 10 -C -G -c -t -D < \
 												$(srcdir)/crypto/proposal/proposal_keywords_static.txt > $@
 
+if STATIC_PLUGIN_CONSTRUCTORS
+noinst_PROGRAMS = plugins/plugin_constructors_builder
+plugins_plugin_constructors_builder_SOURCES = plugins/plugin_constructors_builder.c
+endif
+
 if MONOLITHIC
 SUBDIRS =
 else
