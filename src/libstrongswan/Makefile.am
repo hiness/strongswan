@@ -223,6 +223,13 @@ $(srcdir)/crypto/proposal/proposal_keywords_static.c:	$(srcdir)/crypto/proposal/
 if STATIC_PLUGIN_CONSTRUCTORS
 noinst_PROGRAMS = plugins/plugin_constructors_builder
 plugins_plugin_constructors_builder_SOURCES = plugins/plugin_constructors_builder.c
+
+BUILT_SOURCES += $(srcdir)/plugin_constructors.c
+CLEANFILES = $(srcdir)/plugin_constructors.c
+
+$(srcdir)/plugin_constructors.c: plugins/plugin_constructors_builder
+		$(AM_V_GEN) \
+		plugins/plugin_constructors_builder ${s_plugins} > $@
 endif
 
 if MONOLITHIC
