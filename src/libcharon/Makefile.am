@@ -188,9 +188,9 @@ if STATIC_PLUGIN_CONSTRUCTORS
 BUILT_SOURCES = $(srcdir)/plugin_constructors.c
 CLEANFILES = $(srcdir)/plugin_constructors.c
 
-$(srcdir)/plugin_constructors.c: $(top_builddir)/src/libstrongswan/plugins/plugin_constructors_builder
+$(srcdir)/plugin_constructors.c: $(top_srcdir)/src/libstrongswan/plugins/plugin_constructors.py
 		$(AM_V_GEN) \
-		$(top_builddir)/src/libstrongswan/plugins/plugin_constructors_builder ${c_plugins} > $@
+		$(PYTHON) $(top_srcdir)/src/libstrongswan/plugins/plugin_constructors.py ${c_plugins} > $@
 endif
 
 # build optional plugins

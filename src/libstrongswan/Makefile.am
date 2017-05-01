@@ -195,6 +195,7 @@ endif
 EXTRA_DIST = \
 asn1/oid.txt asn1/oid.pl \
 crypto/proposal/proposal_keywords_static.txt \
+plugins/plugin_constructors.py \
 Android.mk
 
 BUILT_SOURCES = \
@@ -221,15 +222,12 @@ $(srcdir)/crypto/proposal/proposal_keywords_static.c:	$(srcdir)/crypto/proposal/
 												$(srcdir)/crypto/proposal/proposal_keywords_static.txt > $@
 
 if STATIC_PLUGIN_CONSTRUCTORS
-noinst_PROGRAMS = plugins/plugin_constructors_builder
-plugins_plugin_constructors_builder_SOURCES = plugins/plugin_constructors_builder.c
-
 BUILT_SOURCES += $(srcdir)/plugin_constructors.c
 CLEANFILES = $(srcdir)/plugin_constructors.c
 
-$(srcdir)/plugin_constructors.c: plugins/plugin_constructors_builder
+$(srcdir)/plugin_constructors.c: $(srcdir)/plugins/plugin_constructors.py
 		$(AM_V_GEN) \
-		plugins/plugin_constructors_builder ${s_plugins} > $@
+		$(PYTHON) $(srcdir)/plugins/plugin_constructors.py ${s_plugins} > $@
 endif
 
 if MONOLITHIC
