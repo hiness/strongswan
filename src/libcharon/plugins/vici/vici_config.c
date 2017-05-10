@@ -882,6 +882,15 @@ CALLBACK(parse_opt_ipcomp, bool,
 }
 
 /**
+ * Parse OPT_SHA256_96 option
+ */
+CALLBACK(parse_opt_sha256_96, bool,
+	child_cfg_option_t *out, chunk_t v)
+{
+	return parse_option(out, OPT_SHA256_96, v);
+}
+
+/**
  * Parse an action_t
  */
 CALLBACK(parse_action, bool,
@@ -1538,6 +1547,7 @@ CALLBACK(child_kv, bool,
 		{ "tfc_padding",		parse_tfc,			&child->cfg.tfc						},
 		{ "priority",			parse_uint32,		&child->cfg.priority				},
 		{ "interface",			parse_string,		&child->cfg.interface				},
+		{ "sha256_96",			parse_opt_sha256_96,&child->cfg.options					},
 	};
 
 	return parse_rules(rules, countof(rules), name, value,
