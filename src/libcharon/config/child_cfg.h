@@ -304,6 +304,9 @@ enum child_cfg_option_t {
 
 	/** Install outbound FWD IPsec policies to bypass drop policies */
 	OPT_FWD_OUT_POLICIES = (1<<4),
+
+	/** Force 96-bit truncation for SHA-256 */
+	OPT_SHA256_96 = (1<<5),
 };
 
 /**
