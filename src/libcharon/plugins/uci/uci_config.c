@@ -118,7 +118,7 @@ static u_int create_rekey(char *string)
 }
 
 METHOD(enumerator_t, peer_enumerator_enumerate, bool,
-	peer_enumerator_t *this, peer_cfg_t **cfg)
+	peer_enumerator_t *this, va_list args)
 {
 	char *name, *ike_proposal, *esp_proposal, *ike_rekey, *esp_rekey;
 	char *local_id, *local_addr, *local_net;
@@ -144,6 +144,8 @@ METHOD(enumerator_t, peer_enumerator_enumerate, bool,
 		},
 		.mode = MODE_TUNNEL,
 	};
+
+	VA_ARGS_VGET(args, peer_cfg_t**, cfg);
 
 	/* defaults */
 	name = "unnamed";
@@ -212,7 +214,8 @@ METHOD(backend_t, create_peer_cfg_enumerator, enumerator_t*,
 
 	INIT(e,
 		.public = {
-			.enumerate = (void*)_peer_enumerator_enumerate,
+			.enumerate = enumerator_enumerate_default,
+			.venumerate = _peer_enumerator_enumerate,
 			.destroy = _peer_enumerator_destroy,
 		},
 		.inner = this->parser->create_section_enumerator(this->parser,
@@ -241,9 +244,11 @@ typedef struct {
 } ike_enumerator_t;
 
 METHOD(enumerator_t, ike_enumerator_enumerate, bool,
-	ike_enumerator_t *this, ike_cfg_t **cfg)
+	ike_enumerator_t *this, va_list args)
 {
 	char *local_addr, *remote_addr, *ike_proposal;
+
+	VA_ARGS_VGET(args, ike_cfg_t**, cfg);
 
 	/* defaults */
 	local_addr = "0.0.0.0";
@@ -282,7 +287,8 @@ METHOD(backend_t, create_ike_cfg_enumerator, enumerator_t*,
 
 	INIT(e,
 		.public = {
-			.enumerate = (void*)_ike_enumerator_enumerate,
+			.enumerate = enumerator_enumerate_default,
+			.venumerate = _ike_enumerator_enumerate,
 			.destroy = _ike_enumerator_destroy,
 		},
 		.inner = this->parser->create_section_enumerator(this->parser,

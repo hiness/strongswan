@@ -601,9 +601,11 @@ typedef struct {
 } rt_enumerator_t;
 
 METHOD(enumerator_t, rt_enumerate, bool,
-	rt_enumerator_t *this, int *xtype, struct sockaddr **addr)
+	rt_enumerator_t *this, va_list args)
 {
 	int i, type;
+
+	VA_ARGS_VGET(args, int*, xtype, struct sockaddr**, addr);
 
 	if (this->remaining < sizeof(this->addr->sa_len) ||
 		this->remaining < this->addr->sa_len)
@@ -637,7 +639,8 @@ static enumerator_t *create_rt_enumerator(int types, int remaining,
 
 	INIT(this,
 		.public = {
-			.enumerate = (void*)_rt_enumerate,
+			.enumerate = enumerator_enumerate_default,
+			.venumerate = _rt_enumerate,
 			.destroy = (void*)free,
 		},
 		.types = types,
@@ -1789,12 +1792,14 @@ METHOD(enumerator_t, destroy_subnet_enumerator, void,
 }
 
 METHOD(enumerator_t, enumerate_subnets, bool,
-	subnet_enumerator_t *this, host_t **net, uint8_t *mask, char **ifname)
+	subnet_enumerator_t *this, va_list args)
 {
 	enumerator_t *enumerator;
 	struct rt_msghdr *rtm;
 	struct sockaddr *addr;
 	int type;
+
+	VA_ARGS_VGET(args, host_t**, net, uint8_t*, mask, char**, ifname);
 
 	if (!this->current)
 	{
@@ -1888,7 +1893,8 @@ METHOD(kernel_net_t, create_local_subnet_enumerator, enumerator_t*,
 
 	INIT(enumerator,
 		.public = {
-			.enumerate = (void*)_enumerate_subnets,
+			.enumerate = enumerator_enumerate_default,
+			.venumerate = _enumerate_subnets,
 			.destroy = _destroy_subnet_enumerator,
 		},
 		.buf = buf,

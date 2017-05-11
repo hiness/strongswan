@@ -394,10 +394,12 @@ struct policy_enumerator_t {
 };
 
 METHOD(enumerator_t, policy_enumerate, bool,
-	   policy_enumerator_t *this, traffic_selector_t **my_out,
-	   traffic_selector_t **other_out)
+	   policy_enumerator_t *this, va_list args)
 {
 	traffic_selector_t *other_ts;
+
+	VA_ARGS_VGET(args, traffic_selector_t**, my_out,
+				 traffic_selector_t**, other_out);
 
 	while (this->ts || this->mine->enumerate(this->mine, &this->ts))
 	{
@@ -446,7 +448,8 @@ METHOD(child_sa_t, create_policy_enumerator, enumerator_t*,
 
 	INIT(e,
 		.public = {
-			.enumerate = (void*)_policy_enumerate,
+			.enumerate = enumerator_enumerate_default,
+			.venumerate = _policy_enumerate,
 			.destroy = _policy_destroy,
 		},
 		.mine = array_create_enumerator(this->my_ts),

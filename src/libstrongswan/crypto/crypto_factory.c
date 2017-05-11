@@ -1026,9 +1026,11 @@ typedef struct {
 } verify_enumerator_t;
 
 METHOD(enumerator_t, verify_enumerate, bool,
-	verify_enumerator_t *this, u_int *alg, const char **plugin, bool *valid)
+	verify_enumerator_t *this, va_list args)
 {
 	entry_t *entry;
+
+	VA_ARGS_VGET(args, u_int*, alg, const char**, plugin, bool*, valid);
 
 	if (!this->inner->enumerate(this->inner, &entry))
 	{
@@ -1123,7 +1125,8 @@ METHOD(crypto_factory_t, create_verify_enumerator, enumerator_t*,
 	}
 	INIT(enumerator,
 		.public = {
-			.enumerate = (void*)_verify_enumerate,
+			.enumerate = enumerator_enumerate_default,
+			.venumerate = _verify_enumerate,
 			.destroy = _verify_destroy,
 		},
 		.inner = inner,

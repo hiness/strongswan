@@ -209,9 +209,11 @@ typedef struct {
 } child_cfgs_replace_enumerator_t;
 
 METHOD(enumerator_t, child_cfgs_replace_enumerate, bool,
-	child_cfgs_replace_enumerator_t *this, child_cfg_t **chd, bool *added)
+	child_cfgs_replace_enumerator_t *this, va_list args)
 {
 	child_cfg_t *child_cfg;
+
+	VA_ARGS_VGET(args, child_cfg_t**, chd, bool*, added);
 
 	if (!this->wrapped)
 	{
@@ -303,8 +305,9 @@ METHOD(peer_cfg_t, replace_child_cfgs, enumerator_t*,
 
 	INIT(enumerator,
 		.public = {
-			.enumerate = (void*)_child_cfgs_replace_enumerate,
-			.destroy = (void*)_child_cfgs_replace_enumerator_destroy,
+			.enumerate = enumerator_enumerate_default,
+			.venumerate = _child_cfgs_replace_enumerate,
+			.destroy = _child_cfgs_replace_enumerator_destroy,
 		},
 		.removed = removed,
 		.added = added,
@@ -336,8 +339,9 @@ METHOD(enumerator_t, child_cfg_enumerator_destroy, void,
 }
 
 METHOD(enumerator_t, child_cfg_enumerate, bool,
-	child_cfg_enumerator_t *this, child_cfg_t **chd)
+	child_cfg_enumerator_t *this, va_list args)
 {
+	VA_ARGS_VGET(args, child_cfg_t**, chd);
 	return this->wrapped->enumerate(this->wrapped, chd);
 }
 
@@ -348,8 +352,9 @@ METHOD(peer_cfg_t, create_child_cfg_enumerator, enumerator_t*,
 
 	INIT(enumerator,
 		.public = {
-			.enumerate = (void*)_child_cfg_enumerate,
-			.destroy = (void*)_child_cfg_enumerator_destroy,
+			.enumerate = enumerator_enumerate_default,
+			.venumerate = _child_cfg_enumerate,
+			.destroy = _child_cfg_enumerator_destroy,
 		},
 		.mutex = this->mutex,
 		.wrapped = this->child_cfgs->create_enumerator(this->child_cfgs),

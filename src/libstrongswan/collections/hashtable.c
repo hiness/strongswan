@@ -379,8 +379,10 @@ METHOD(hashtable_t, get_count, u_int,
 }
 
 METHOD(enumerator_t, enumerate, bool,
-	private_enumerator_t *this, const void **key, void **value)
+	private_enumerator_t *this, va_list args)
 {
+	VA_ARGS_VGET(args, const void**, key, void**, value);
+
 	while (this->count && this->row < this->table->capacity)
 	{
 		this->prev = this->current;
@@ -417,7 +419,8 @@ METHOD(hashtable_t, create_enumerator, enumerator_t*,
 
 	INIT(enumerator,
 		.enumerator = {
-			.enumerate = (void*)_enumerate,
+			.enumerate = enumerator_enumerate_default,
+			.venumerate = _enumerate,
 			.destroy = (void*)free,
 		},
 		.table = this,

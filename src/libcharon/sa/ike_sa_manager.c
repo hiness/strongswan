@@ -511,8 +511,10 @@ struct private_enumerator_t {
 };
 
 METHOD(enumerator_t, enumerate, bool,
-	private_enumerator_t *this, entry_t **entry, u_int *segment)
+	private_enumerator_t *this, va_list args)
 {
+	VA_ARGS_VGET(args, entry_t**, entry, u_int*, segment);
+
 	if (this->entry)
 	{
 		this->entry->condvar->signal(this->entry->condvar);
@@ -570,7 +572,8 @@ static enumerator_t* create_table_enumerator(private_ike_sa_manager_t *this)
 
 	INIT(enumerator,
 		.enumerator = {
-			.enumerate = (void*)_enumerate,
+			.enumerate = enumerator_enumerate_default,
+			.venumerate = _enumerate,
 			.destroy = _enumerator_destroy,
 		},
 		.manager = this,

@@ -119,8 +119,10 @@ struct private_enumerator_t {
 };
 
 METHOD(enumerator_t, enumerate, bool,
-	private_enumerator_t *this, void **item)
+	private_enumerator_t *this, va_list args)
 {
+	VA_ARGS_VGET(args, void**, item);
+
 	if (this->finished)
 	{
 		return FALSE;
@@ -152,7 +154,8 @@ METHOD(linked_list_t, create_enumerator, enumerator_t*,
 
 	INIT(enumerator,
 		.enumerator = {
-			.enumerate = (void*)_enumerate,
+			.enumerate = enumerator_enumerate_default,
+			.venumerate = _enumerate,
 			.destroy = (void*)free,
 		},
 		.list = this,

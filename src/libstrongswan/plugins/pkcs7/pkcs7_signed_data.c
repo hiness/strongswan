@@ -179,7 +179,7 @@ typedef struct {
 } signature_enumerator_t;
 
 METHOD(enumerator_t, enumerate, bool,
-	signature_enumerator_t *this, auth_cfg_t **out)
+	signature_enumerator_t *this, va_list args)
 {
 	signerinfo_t *info;
 	signature_scheme_t scheme;
@@ -191,6 +191,8 @@ METHOD(enumerator_t, enumerate, bool,
 	chunk_t chunk, hash, content;
 	hasher_t *hasher;
 	bool valid;
+
+	VA_ARGS_VGET(args, auth_cfg_t**, out);
 
 	while (this->inner->enumerate(this->inner, &info))
 	{
@@ -300,7 +302,8 @@ METHOD(container_t, create_signature_enumerator, enumerator_t*,
 
 	INIT(enumerator,
 		.public = {
-			.enumerate = (void*)_enumerate,
+			.enumerate = enumerator_enumerate_default,
+			.venumerate = _enumerate,
 			.destroy = _enumerator_destroy,
 		},
 		.inner = this->signerinfos->create_enumerator(this->signerinfos),

@@ -223,7 +223,7 @@ typedef struct {
 } peer_enumerator_t;
 
 METHOD(enumerator_t, peer_enumerator_enumerate, bool,
-	peer_enumerator_t *this, peer_cfg_t **cfg)
+	peer_enumerator_t *this, va_list args)
 {
 	char *name, *local_net, *remote_net;
 	chunk_t me, other;
@@ -248,6 +248,8 @@ METHOD(enumerator_t, peer_enumerator_enumerate, bool,
 		},
 		.mode = MODE_TUNNEL,
 	};
+
+	VA_ARGS_VGET(args, peer_cfg_t**, cfg);
 
 	DESTROY_IF(this->current);
 	if (!this->inner->enumerate(this->inner, &name, &me, &other,
@@ -295,7 +297,8 @@ METHOD(backend_t, create_peer_cfg_enumerator, enumerator_t*,
 
 	INIT(e,
 		.public = {
-			.enumerate = (void*)_peer_enumerator_enumerate,
+			.enumerate = enumerator_enumerate_default,
+			.venumerate = _peer_enumerator_enumerate,
 			.destroy = _peer_enumerator_destroy,
 		},
 		.ike = this->ike,

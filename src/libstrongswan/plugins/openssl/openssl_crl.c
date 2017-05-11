@@ -142,8 +142,10 @@ typedef struct {
 
 
 METHOD(enumerator_t, crl_enumerate, bool,
-	crl_enumerator_t *this, chunk_t *serial, time_t *date, crl_reason_t *reason)
+	crl_enumerator_t *this, va_list args)
 {
+	VA_ARGS_VGET(args, chunk_t*, serial, time_t*, date, crl_reason_t*, reason);
+
 	if (this->i < this->num)
 	{
 		X509_REVOKED *revoked;
@@ -188,7 +190,8 @@ METHOD(crl_t, create_enumerator, enumerator_t*,
 
 	INIT(enumerator,
 		.public = {
-			.enumerate = (void*)_crl_enumerate,
+			.enumerate = enumerator_enumerate_default,
+			.venumerate = _crl_enumerate,
 			.destroy = (void*)free,
 		},
 		.stack = X509_CRL_get_REVOKED(this->crl),

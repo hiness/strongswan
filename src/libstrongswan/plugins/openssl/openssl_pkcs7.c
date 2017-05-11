@@ -136,8 +136,10 @@ METHOD(enumerator_t, cert_destroy, void,
 }
 
 METHOD(enumerator_t, cert_enumerate, bool,
-	cert_enumerator_t *this, certificate_t **out)
+	cert_enumerator_t *this, va_list args)
 {
+	VA_ARGS_VGET(args, certificate_t**, out);
+
 	if (!this->certs)
 	{
 		return FALSE;
@@ -176,7 +178,8 @@ METHOD(pkcs7_t, create_cert_enumerator, enumerator_t*,
 	{
 		INIT(enumerator,
 			.public = {
-				.enumerate = (void*)_cert_enumerate,
+				.enumerate = enumerator_enumerate_default,
+				.venumerate = _cert_enumerate,
 				.destroy = _cert_destroy,
 			},
 			.certs = CMS_get1_certs(this->cms),
@@ -320,8 +323,10 @@ static bool verify_digest(CMS_ContentInfo *cms, CMS_SignerInfo *si, int hash_oid
 }
 
 METHOD(enumerator_t, signature_enumerate, bool,
-	signature_enumerator_t *this, auth_cfg_t **out)
+	signature_enumerator_t *this, va_list args)
 {
+	VA_ARGS_VGET(args, auth_cfg_t**, out);
+
 	if (!this->signers)
 	{
 		return FALSE;
@@ -382,7 +387,8 @@ METHOD(container_t, create_signature_enumerator, enumerator_t*,
 
 		INIT(enumerator,
 			.public = {
-				.enumerate = (void*)_signature_enumerate,
+				.enumerate = enumerator_enumerate_default,
+				.venumerate = _signature_enumerate,
 				.destroy = _signature_destroy,
 			},
 			.cms = this->cms,
