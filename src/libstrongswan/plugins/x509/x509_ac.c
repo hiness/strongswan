@@ -804,20 +804,25 @@ METHOD(ac_t, get_authKeyIdentifier, chunk_t,
 	return this->authKeyIdentifier;
 }
 
-/**
- * Filter function for attribute enumeration
- */
-static bool attr_filter(void *null, group_t **in, ac_group_type_t *type,
-						void *in2, chunk_t *out)
+CALLBACK(attr_filter, bool,
+	void *null, enumerator_t *orig, va_list args)
 {
-	if ((*in)->type == AC_GROUP_TYPE_STRING &&
-		!chunk_printable((*in)->value, NULL, 0))
-	{	/* skip non-printable strings */
-		return FALSE;
+	group_t *group;
+
+	VA_ARGS_VGET(args, ac_group_type_t*, type, chunk_t*, out);
+
+	while (orig->enumerate(orig, &group))
+	{
+		if (group->type == AC_GROUP_TYPE_STRING &&
+			!chunk_printable(group->value, NULL, 0))
+		{	/* skip non-printable strings */
+			continue;
+		}
+		*type = group->type;
+		*out = group->value;
+		return TRUE;
 	}
-	*type = (*in)->type;
-	*out = (*in)->value;
-	return TRUE;
+	return FALSE;
 }
 
 METHOD(ac_t, create_group_enumerator, enumerator_t*,
@@ -825,7 +830,7 @@ METHOD(ac_t, create_group_enumerator, enumerator_t*,
 {
 	return enumerator_create_filter(
 							this->groups->create_enumerator(this->groups),
-							(void*)attr_filter, NULL, NULL);
+							attr_filter, NULL, NULL);
 }
 
 METHOD(certificate_t, get_type, certificate_type_t,

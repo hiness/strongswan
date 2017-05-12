@@ -2059,13 +2059,19 @@ METHOD(task_manager_t, reset, void,
 	this->reset = TRUE;
 }
 
-/**
- * Filter queued tasks
- */
-static bool filter_queued(void *unused, queued_task_t **queued, task_t **task)
+CALLBACK(filter_queued, bool,
+	void *unused, enumerator_t *orig, va_list args)
 {
-	*task = (*queued)->task;
-	return TRUE;
+	queued_task_t *queued;
+
+	VA_ARGS_VGET(args, task_t**, task);
+
+	if (orig->enumerate(orig, &queued))
+	{
+		*task = queued->task;
+		return TRUE;
+	}
+	return FALSE;
 }
 
 METHOD(task_manager_t, create_task_enumerator, enumerator_t*,
@@ -2080,7 +2086,7 @@ METHOD(task_manager_t, create_task_enumerator, enumerator_t*,
 		case TASK_QUEUE_QUEUED:
 			return enumerator_create_filter(
 									array_create_enumerator(this->queued_tasks),
-									(void*)filter_queued, NULL, NULL);
+									filter_queued, NULL, NULL);
 		default:
 			return enumerator_create_empty();
 	}
