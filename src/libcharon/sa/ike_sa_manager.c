@@ -151,8 +151,10 @@ static entry_t *entry_create()
 /**
  * Function that matches entry_t objects by ike_sa_id_t.
  */
-static bool entry_match_by_id(entry_t *entry, ike_sa_id_t *id)
+static bool entry_match_by_id(entry_t *entry, void *arg)
 {
+	ike_sa_id_t *id = arg;
+
 	if (id->equals(id, entry->ike_sa_id))
 	{
 		return TRUE;
@@ -172,7 +174,7 @@ static bool entry_match_by_id(entry_t *entry, ike_sa_id_t *id)
 /**
  * Function that matches entry_t objects by ike_sa_t pointers.
  */
-static bool entry_match_by_sa(entry_t *entry, ike_sa_t *ike_sa)
+static bool entry_match_by_sa(entry_t *entry, void *ike_sa)
 {
 	return entry->ike_sa == ike_sa;
 }
@@ -673,7 +675,7 @@ static void remove_entry_at(private_enumerator_t *this)
  */
 static status_t get_entry_by_match_function(private_ike_sa_manager_t *this,
 					ike_sa_id_t *ike_sa_id, entry_t **entry, u_int *segment,
-					linked_list_match_t match, void *param)
+					bool (*match)(entry_t*,void*), void *param)
 {
 	table_item_t *item;
 	u_int row, seg;
@@ -706,7 +708,7 @@ static status_t get_entry_by_id(private_ike_sa_manager_t *this,
 						ike_sa_id_t *ike_sa_id, entry_t **entry, u_int *segment)
 {
 	return get_entry_by_match_function(this, ike_sa_id, entry, segment,
-				(linked_list_match_t)entry_match_by_id, ike_sa_id);
+									   entry_match_by_id, ike_sa_id);
 }
 
 /**
@@ -717,7 +719,7 @@ static status_t get_entry_by_sa(private_ike_sa_manager_t *this,
 			ike_sa_id_t *ike_sa_id, ike_sa_t *ike_sa, entry_t **entry, u_int *segment)
 {
 	return get_entry_by_match_function(this, ike_sa_id, entry, segment,
-				(linked_list_match_t)entry_match_by_sa, ike_sa);
+									   entry_match_by_sa, ike_sa);
 }
 
 /**
@@ -854,6 +856,13 @@ static void remove_half_open(private_ike_sa_manager_t *this, entry_t *entry)
 	lock->unlock(lock);
 }
 
+CALLBACK(id_matches, bool,
+	ike_sa_id_t *a, va_list args)
+{
+	VA_ARGS_VGET(args, ike_sa_id_t*, b);
+	return a->equals(a, b);
+}
+
 /**
  * Put an SA between two peers into the hash table.
  */
@@ -882,8 +891,7 @@ static void put_connected_peers(private_ike_sa_manager_t *this, entry_t *entry)
 								  entry->other_id, family))
 		{
 			if (connected_peers->sas->find_first(connected_peers->sas,
-					(linked_list_match_t)entry->ike_sa_id->equals,
-					NULL, entry->ike_sa_id) == SUCCESS)
+											id_matches, NULL, entry->ike_sa_id))
 			{
 				lock->unlock(lock);
 				return;

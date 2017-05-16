@@ -92,11 +92,10 @@ static void overlay_destroy(overlay_t *this)
 	free(this);
 }
 
-/**
- * compare two overlays by path
- */
-static bool overlay_equals(overlay_t *this, overlay_t *other)
+CALLBACK(overlay_equals, bool,
+	overlay_t *this, va_list args)
 {
+	VA_ARGS_VGET(args, overlay_t*, other);
 	return streq(this->path, other->path);
 }
 
@@ -108,8 +107,8 @@ static bool overlay_remove(private_cowfs_t *this, char *path)
 {
 	overlay_t over, *current;
 	over.path = path;
-	if (this->overlays->find_first(this->overlays,
-			(linked_list_match_t)overlay_equals, (void**)&current, &over) != SUCCESS)
+	if (!this->overlays->find_first(this->overlays, overlay_equals,
+									(void**)&current, &over))
 	{
 		return FALSE;
 	}

@@ -103,12 +103,11 @@ METHOD(enumerator_t, enumerate_attrs, bool,
 	return FALSE;
 }
 
-/**
- * Check if the given host has a matching address family
- */
-static bool is_family(host_t *host, int *family)
+CALLBACK(is_family, bool,
+	host_t *host, va_list args)
 {
-	return host->get_family(host) == *family;
+	VA_ARGS_VGET(args, int, family);
+	return host->get_family(host) == family;
 }
 
 /**
@@ -116,7 +115,7 @@ static bool is_family(host_t *host, int *family)
  */
 static bool has_host_family(linked_list_t *list, int family)
 {
-	return list->find_first(list, (void*)is_family, NULL, &family) == SUCCESS;
+	return list->find_first(list, is_family, NULL, family);
 }
 
 METHOD(attribute_handler_t, create_attribute_enumerator, enumerator_t *,

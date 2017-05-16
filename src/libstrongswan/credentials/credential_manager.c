@@ -810,11 +810,10 @@ static bool verify_trust_chain(private_credential_manager_t *this,
 	return trusted;
 }
 
-/**
- * List find match function for certificates
- */
-static bool cert_equals(certificate_t *a, certificate_t *b)
+CALLBACK(cert_equals, bool,
+	certificate_t *a, va_list args)
 {
+	VA_ARGS_VGET(args, certificate_t*, b);
 	return a->equals(a, b);
 }
 
@@ -893,8 +892,7 @@ METHOD(enumerator_t, trusted_enumerate, bool,
 			continue;
 		}
 
-		if (this->failed->find_first(this->failed, (void*)cert_equals,
-									 NULL, current) == SUCCESS)
+		if (this->failed->find_first(this->failed, cert_equals, NULL, current))
 		{	/* check each candidate only once */
 			continue;
 		}

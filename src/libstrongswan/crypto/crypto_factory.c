@@ -811,11 +811,10 @@ METHOD(crypto_factory_t, remove_dh, void,
 	this->lock->unlock(this->lock);
 }
 
-/**
- * match algorithms of an entry?
- */
-static bool entry_match(entry_t *a, entry_t *b)
+CALLBACK(entry_match, bool,
+	entry_t *a, va_list args)
 {
+	VA_ARGS_VGET(args, entry_t*, b);
 	return a->algo == b->algo;
 }
 
@@ -828,7 +827,7 @@ CALLBACK(unique_check, bool,
 
 	while (orig->enumerate(orig, &entry))
 	{
-		if (list->find_first(list, (void*)entry_match, NULL, entry) == SUCCESS)
+		if (list->find_first(list, entry_match, NULL, entry))
 		{
 			continue;
 		}

@@ -140,19 +140,17 @@ static void destroy_acquire(acquire_t *this)
 	free(this);
 }
 
-/**
- * match an acquire entry by reqid
- */
-static bool acquire_by_reqid(acquire_t *this, uint32_t *reqid)
+CALLBACK(acquire_by_reqid, bool,
+	acquire_t *this, va_list args)
 {
-	return this->reqid == *reqid;
+	VA_ARGS_VGET(args, uint32_t, reqid);
+	return this->reqid == reqid;
 }
 
-/**
- * match an acquire entry by destination address
- */
-static bool acquire_by_dst(acquire_t *this, host_t *dst)
+CALLBACK(acquire_by_dst, bool,
+	acquire_t *this, va_list args)
 {
+	VA_ARGS_VGET(args, host_t*, dst);
 	return this->dst && this->dst->ip_equals(this->dst, dst);
 }
 
@@ -436,8 +434,8 @@ METHOD(trap_manager_t, acquire, void,
 		uint8_t mask;
 
 		dst->to_subnet(dst, &host, &mask);
-		if (this->acquires->find_first(this->acquires, (void*)acquire_by_dst,
-									  (void**)&acquire, host) == SUCCESS)
+		if (this->acquires->find_first(this->acquires, acquire_by_dst,
+									  (void**)&acquire, host))
 		{
 			host->destroy(host);
 			ignore = TRUE;
@@ -453,8 +451,8 @@ METHOD(trap_manager_t, acquire, void,
 	}
 	else
 	{
-		if (this->acquires->find_first(this->acquires, (void*)acquire_by_reqid,
-									  (void**)&acquire, &reqid) == SUCCESS)
+		if (this->acquires->find_first(this->acquires, acquire_by_reqid,
+									  (void**)&acquire, reqid))
 		{
 			ignore = TRUE;
 		}

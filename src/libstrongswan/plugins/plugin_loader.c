@@ -547,18 +547,14 @@ static void load_provided(private_plugin_loader_t *this,
 						  provided_feature_t *provided,
 						  int level);
 
-/**
- * Used to find a loaded feature
- */
-static bool is_feature_loaded(provided_feature_t *item)
+CALLBACK(is_feature_loaded, bool,
+	provided_feature_t *item, va_list args)
 {
 	return item->loaded;
 }
 
-/**
- * Used to find a loadable feature
- */
-static bool is_feature_loadable(provided_feature_t *item)
+CALLBACK(is_feature_loadable, bool,
+	provided_feature_t *item, va_list args)
 {
 	return !item->loading && !item->loaded && !item->failed;
 }
@@ -571,8 +567,7 @@ static bool loaded_feature_matches(registered_feature_t *a,
 {
 	if (plugin_feature_matches(a->feature, b->feature))
 	{
-		return b->plugins->find_first(b->plugins, (void*)is_feature_loaded,
-									  NULL) == SUCCESS;
+		return b->plugins->find_first(b->plugins, is_feature_loaded, NULL);
 	}
 	return FALSE;
 }
@@ -585,8 +580,7 @@ static bool loadable_feature_equals(registered_feature_t *a,
 {
 	if (plugin_feature_equals(a->feature, b->feature))
 	{
-		return b->plugins->find_first(b->plugins, (void*)is_feature_loadable,
-									  NULL) == SUCCESS;
+		return b->plugins->find_first(b->plugins, is_feature_loadable, NULL);
 	}
 	return FALSE;
 }
@@ -599,8 +593,7 @@ static bool loadable_feature_matches(registered_feature_t *a,
 {
 	if (plugin_feature_matches(a->feature, b->feature))
 	{
-		return b->plugins->find_first(b->plugins, (void*)is_feature_loadable,
-									  NULL) == SUCCESS;
+		return b->plugins->find_first(b->plugins, is_feature_loadable, NULL);
 	}
 	return FALSE;
 }
@@ -937,8 +930,8 @@ static void purge_plugins(private_plugin_loader_t *this)
 		{	/* feature interface not supported */
 			continue;
 		}
-		if (entry->features->find_first(entry->features,
-									(void*)is_feature_loaded, NULL) != SUCCESS)
+		if (!entry->features->find_first(entry->features, is_feature_loaded,
+										 NULL))
 		{
 			DBG2(DBG_LIB, "unloading plugin '%s' without loaded features",
 				 entry->plugin->get_name(entry->plugin));
@@ -986,6 +979,13 @@ static bool find_plugin(char *path, char *name, char *buf, char **file)
 		}
 	}
 	return FALSE;
+}
+
+CALLBACK(find_plugin_cb, bool,
+	char *path, va_list args)
+{
+	VA_ARGS_VGET(args, char*, name, char*, buf, char**, file);
+	return find_plugin(path, name, buf, file);
 }
 
 /**
@@ -1169,8 +1169,8 @@ METHOD(plugin_loader_t, load_plugins, bool,
 		}
 		if (this->paths)
 		{
-			this->paths->find_first(this->paths, (void*)find_plugin, NULL,
-									token, buf, &file);
+			this->paths->find_first(this->paths, find_plugin_cb, NULL, token,
+									buf, &file);
 		}
 		if (!file)
 		{
